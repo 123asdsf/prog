@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "prog"
+version = "0.1.0"
+description = ""
+authors = ["123asdsf <ananim827034@mail.ru>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+vk-api = "^11.9.9"
+redis = "^5.0.4"
+pydantic = "^2.7.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
