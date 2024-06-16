@@ -3,7 +3,7 @@ from vkbottle import Keyboard, KeyboardButtonColor, Text, EMPTY_KEYBOARD
 from prog.config import labeler
 
 
-@labeler.message(text="Начать")
+@labeler.private_message(text="Начать")
 async def all_message(message: Message):
     keyboard = Keyboard()
 
