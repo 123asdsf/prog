@@ -7,3 +7,4 @@ async def reg_group(message: Message, group=None):
         pass #добавить в базу данных номер группы и ид 
     else:
         await message.answer("Вы не ввели номер группы.") 
+# Добавить проверки на повторы
