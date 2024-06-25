@@ -7,17 +7,17 @@ class User(BaseModel):
     last_name: str
     rule: int
 
-class rules(BaseModel):
+class Rules(BaseModel):
     id_rule: int
     name: str
     functional: str
 
-class groups(BaseModel):
+class Groups(BaseModel):
     peer_ids: int
     group_number: str
     route: int
     kurs: str
 
-class routes(BaseModel):
+class Routes(BaseModel):
     id_route: int
     name: str

@@ -1,6 +1,8 @@
 from prog.config import labeler
 from vkbottle.bot import Message
 
+
+
 @labeler.chat_message(text=["/reg <group>", "/reg"])
 async def reg_group(message: Message, group=None):
     if group is not None:
