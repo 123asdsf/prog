@@ -13,6 +13,7 @@ redis = "^5.0.4"
 
 pydantic = "1.10.16"
 vkbottle = "^4.3.12"
+psycopg = {extras = ["binary", "pool"], version = "^3.1.19"}
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
