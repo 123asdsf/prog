@@ -1,8 +1,20 @@
 from vkbottle import API, Bot
 from vkbottle.bot import BotLabeler
+import os
 
+def environ_get(key: str, default=""):
+    e = os.environ.get(key, default)
+    if not e:
+        raise ValueError(f"{key} is not set")
+    return e
 
-TOKEN = "vk1.a.q8xvFsuYgPyiTbuq97H3lZPCb9mRyrb5ZjtMWFHrygPNO4ibZPcLH0DsNR6cpJrf3aeKZnW-MTPAW7DbFVlPabpjF8egQLhCKNSb2xosHIyPO5GqM86DRDaRSoisEyIRVeA1_KRfAE6cMKieIayxCR8sF3hgGQwOiOmjuONEiwxl367mVEg0-c6RoLHu40ozUPoblpnsngS_byHBM2g7LA"
+TOKEN = environ_get("TOKEN")
+DB_NAME = environ_get("DB_NAME")
+DB_USER = environ_get("DB_USER")
+DB_PASSWORD = environ_get("DB_PASSWORD")
+DB_HOST = environ_get("DB_HOST")
+DB_PORT = environ_get("DB_PORT")
+# = environ_get("")
 
 api = API(TOKEN)
 labeler = BotLabeler()
@@ -12,11 +24,4 @@ bot = Bot(
     labeler=labeler,
 )
 
-# db config
-DB_NAME="progVK"
-DB_USER="postgres"
-DB_PASSWORD='postgres'
-DB_HOST="db"
-DB_PORT=5432
-# MIGRATE_DATABASE=postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=disable
 
