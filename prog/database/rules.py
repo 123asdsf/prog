@@ -5,13 +5,13 @@ class RulesRepository():
     def __init__(self, conn: AsyncConnection):
         self._conn = conn
 
-    async def create(self, id_rule: int, name: str, functional: str):
+    async def create(self,name: str, functional: str):
         async with self._conn.cursor() as cursor:
             try:
                 await cursor.execute("""
-                    INSERT INTO Rules (id_rule, name, functional)
-                    VALUES (%s, %s, %s)
-                """, (id_rule, name, functional))
+                    INSERT INTO Rules (name, functional)
+                    VALUES (%s, %s)
+                """, (name, functional))
                 await self._conn.commit()
             except Exception as e:
                 await self._conn.rollback()

@@ -10,6 +10,7 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
 
+
   # postgres database
   db:
     image: postgres
@@ -37,6 +38,16 @@ services:
     image: adminer
     ports:
       - 8080:8080
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # database migration
+  migrate:
+    image: migrate/migrate
+    volumes:
+      - ./migration:/migration
+    command: -source file://prog/migration -database $MIGRATE_DATABASE up
     depends_on:
       db:
         condition: service_healthy

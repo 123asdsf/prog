@@ -5,13 +5,13 @@ class RoutesRepository():
     def __init__(self, conn: AsyncConnection):
         self._conn = conn
 
-    async def create(self, id_route: int, name: str):
+    async def create(self, name: str):
         async with self._conn.cursor() as cursor:
             try:
                 await cursor.execute("""
-                    INSERT INTO Routes (id_route, name)
-                    VALUES (%s, %s)
-                """, (id_route, name))
+                    INSERT INTO Routes (name)
+                    VALUES (%s)
+                """, (name))
                 await self._conn.commit()
             except Exception as e:
                 await self._conn.rollback()
