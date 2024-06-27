@@ -1,3 +1,9 @@
+CREATE TABLE Routes (
+    id_route SERIAL NOT NULL,
+    name VARCHAR(60) NOT NULL UNIQUE,
+    CONSTRAINT K2 PRIMARY KEY (id_route)
+);
+
 CREATE TABLE Groups (
     peer_ids INTEGER NOT NULL,
     group_number VARCHAR(60) NOT NULL UNIQUE,
@@ -7,13 +13,14 @@ CREATE TABLE Groups (
     CONSTRAINT C1 FOREIGN KEY (route) REFERENCES Routes (id_route)
 );
 
-CREATE TABLE Routes (
-    id_route SERIAL NOT NULL,
-    name VARCHAR(60) NOT NULL UNIQUE,
-    CONSTRAINT K2 PRIMARY KEY (id_route)
+CREATE TABLE Rules (
+    id_rule SERIAL NOT NULL,
+    name VARCHAR(60) NOT NULL,
+    functional VARCHAR(120) NOT NULL,
+    CONSTRAINT K4 PRIMARY KEY (id_rule)
 );
 
-CREATE TABLE User (
+CREATE TABLE Users (
     peer_id INTEGER NOT NULL UNIQUE,
     name VARCHAR(60) NOT NULL,
     surname VARCHAR(60) NOT NULL,
@@ -23,9 +30,3 @@ CREATE TABLE User (
     CONSTRAINT C2 FOREIGN KEY (rule) REFERENCES Rules (id_rule)
 );
 
-CREATE TABLE Rules (
-    id_rule SERIAL NOT NULL,
-    name VARCHAR(60) NOT NULL,
-    functional VARCHAR(120) NOT NULL,
-    CONSTRAINT K4 PRIMARY KEY (id_rule)
-);

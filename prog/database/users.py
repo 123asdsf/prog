@@ -1,7 +1,7 @@
-from models import User
+from prog.database.models import Users
 from psycopg import AsyncConnection
 
-class UserRepository():
+class UsersRepository():
     def __init__(self, conn: AsyncConnection):
         self._conn = conn
 
@@ -13,7 +13,7 @@ class UserRepository():
         async with self._conn.cursor() as cursor:
             try:
                 await cursor.execute("""
-                    INSERT INTO User (peer_id, name, surname, last_name, rule)
+                    INSERT INTO Users (peer_id, name, surname, last_name, rule)
                     VALUES (%s, %s, %s, %s, %s)
                 """, (peer_id, name, surname, last_name, rule))
                 await self._conn.commit()
@@ -21,30 +21,30 @@ class UserRepository():
                 await self._conn.rollback()
                 raise e
 
-    async def get(self, peer_id: int) -> User | None:
+    async def get(self, peer_id: int) -> Users | None:
         async with self._conn.cursor() as cursor:
             await cursor.execute("""
                 SELECT *
-                FROM User
+                FROM Users
                 WHERE peer_id = %s
             """, (peer_id))
             result = await cursor.fetchone()
             if result is None:
                 return None
-            return User(
+            return Users(
                 peer_id=result[0],########
             )
 
 
-    async def get_list(self, limit: int, offset: int = 0) -> list[User]:
+    async def get_list(self, limit: int, offset: int = 0) -> list[Users]:
         async with self._conn.cursor() as cursor:
             await cursor.execute("""
                 SELECT *
-                FROM User
+                FROM Users
                 LIMIT %s
                 OFFSET %s
             """, (limit, offset))
             result = await cursor.fetchall()
-            return [User(
+            return [Users(
                 peer_id=row[0],########
             ) for row in result]

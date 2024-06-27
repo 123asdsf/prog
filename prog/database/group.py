@@ -1,4 +1,4 @@
-from models import Groups
+from prog.database.models import Groups
 from psycopg import AsyncConnection
 
 class GroupsRepository():

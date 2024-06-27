@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-class User(BaseModel):
+class Users(BaseModel):
     peer_id: int
     name: str
     surname: str

@@ -1,5 +1,5 @@
 from vkbottle.bot import BotLabeler, Message, rules
-from vkbottle import Keyboard, KeyboardButtonColor, Text, EMPTY_KEYBOARD, BaseStateGroup
+from vkbottle import Keyboard, KeyboardButtonColor, Text, BaseStateGroup
 from prog.config import bot
 
 teacher_labeler = BotLabeler()

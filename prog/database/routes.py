@@ -1,4 +1,4 @@
-from models import Routes
+from prog.database.models import Routes
 from psycopg import AsyncConnection
 
 class RoutesRepository():

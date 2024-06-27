@@ -1,4 +1,4 @@
-from models import Rules
+from prog.database.models import Rules
 from psycopg import AsyncConnection
 
 class RulesRepository():
