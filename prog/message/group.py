@@ -1,15 +1,16 @@
 from prog.config import labeler
 from vkbottle.bot import Message
 from prog.database.group import GroupsRepository
+from datetime import date
 
-
-
-@labeler.chat_message(text=["/reg <group>", "/reg"])
-async def reg_group(message: Message, group=None):
-    if group is not None:
-        await message.answer(message.peer_id)
-        
-         #добавить в базу данных номер группы и ид 
-    else:
-        await message.answer("Вы не ввели номер группы.") 
-# Добавить проверки на повторы peer_ids надо вытащить и минус 2000000000
+async def group_handler(group_repo: GroupsRepository):
+    @labeler.chat_message(text=["/reg <group>", "/reg"])
+    async def _(message: Message, group=None):
+        if group is not None:
+            if await group_repo.get_id(message.peer_id-2000000000) is None:
+                await group_repo.create((message.peer_id-2000000000), group, group[4], (date.today().year-int(group[2]))%10)
+                await message.answer("Успено зарегистрирован.")
+            else:
+                await message.answer("Данный чат уже зарегистрирован.")
+        else:
+            await message.answer("Вы не ввели номер группы.")

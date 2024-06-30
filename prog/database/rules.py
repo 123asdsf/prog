@@ -23,27 +23,27 @@ class RulesRepository():
                 SELECT *
                 FROM Rules
                 WHERE id_rule = %s
-            """, (id_rule))
+            """, (id_rule,))
             result = await cursor.fetchone()
             if result is None:
                 return None
             return Rules(
-                id_rule=result[0],########
+                id_rule=result[0], name=result[1], functional=result[2]
             )
 
-    async def get_name(self, name: str) -> Rules | None:
-        async with self._conn.cursor() as cursor:
-            await cursor.execute("""
-                SELECT *
-                FROM Rules
-                WHERE name = %s
-            """, (name))
-            result = await cursor.fetchone()
-            if result is None:
-                return None
-            return Rules(
-                name=result[0],#########
-            )
+    # async def get_name(self, name: str) -> Rules | None:
+    #     async with self._conn.cursor() as cursor:
+    #         await cursor.execute("""
+    #             SELECT *
+    #             FROM Rules
+    #             WHERE name = %s
+    #         """, (name))
+    #         result = await cursor.fetchone()
+    #         if result is None:
+    #             return None
+    #         return Rules(
+    #             id_rule=result[0], name=result[1], functional=result[2]
+    #         )
 
 
     async def get_list(self, limit: int, offset: int = 0) -> list[Rules]:
@@ -56,5 +56,5 @@ class RulesRepository():
             """, (limit, offset))
             result = await cursor.fetchall()
             return [Rules(
-                peer_ids=row[0],########
+                id_rule=row[0], name=row[1], functional=row[2]
             ) for row in result]

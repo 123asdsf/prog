@@ -11,7 +11,7 @@ class RoutesRepository():
                 await cursor.execute("""
                     INSERT INTO Routes (name)
                     VALUES (%s)
-                """, (name))
+                """, (name,))
                 await self._conn.commit()
             except Exception as e:
                 await self._conn.rollback()
@@ -28,22 +28,22 @@ class RoutesRepository():
             if result is None:
                 return None
             return Routes(
-                id_route=result[0],########
+                id_route=result[0], name=result[1]
             )
 
-    async def get_name(self, name: str) -> Routes | None:
-        async with self._conn.cursor() as cursor:
-            await cursor.execute("""
-                SELECT *
-                FROM Routes
-                WHERE name = %s
-            """, (name))
-            result = await cursor.fetchone()
-            if result is None:
-                return None
-            return Routes(
-                name=result[0],#########
-            )
+    # async def get_name(self, name: str) -> Routes | None:
+    #     async with self._conn.cursor() as cursor:
+    #         await cursor.execute("""
+    #             SELECT *
+    #             FROM Routes
+    #             WHERE name = %s
+    #         """, (name))
+    #         result = await cursor.fetchone()
+    #         if result is None:
+    #             return None
+    #         return Routes(
+    #             id_route=result[0], name=result[1]
+    #         )
 
 
     async def get_list(self, limit: int, offset: int = 0) -> list[Routes]:
@@ -56,5 +56,5 @@ class RoutesRepository():
             """, (limit, offset))
             result = await cursor.fetchall()
             return [Routes(
-                peer_ids=row[0],########
+                id_route=row[0], name=row[1]
             ) for row in result]

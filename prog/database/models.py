@@ -16,7 +16,7 @@ class Groups(BaseModel):
     peer_ids: int
     group_number: str
     route: int
-    kurs: str
+    course: int
 
 class Routes(BaseModel):
     id_route: int

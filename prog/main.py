@@ -5,12 +5,13 @@ from prog.database.users import UsersRepository
 from prog.database.routes import RoutesRepository
 from prog.database.group import GroupsRepository
 from prog.database.rules import RulesRepository
+from prog.message.admin import admins_handler
+from prog.message.group import group_handler
+from prog.message.private import private_handler
 import psycopg
 import asyncio
 
 async def app():
-    for labeler in labelers:
-        bot.labeler.load(labeler)
 
     conn: psycopg.AsyncConnection = await psycopg.AsyncConnection.connect(
             dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD, host=DB_HOST, port=DB_PORT)  
@@ -19,6 +20,15 @@ async def app():
     route_repo = RoutesRepository(conn)
     group_repo = GroupsRepository(conn)
     rule_repo = RulesRepository(conn)
+
+    await admins_handler(route_repo)
+    await group_handler(group_repo)
+    await private_handler(route_repo, group_repo)
+
+    for labeler in labelers:
+        bot.labeler.load(labeler)
+
+
 
     await bot.run_polling()
 

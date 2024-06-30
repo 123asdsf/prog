@@ -8,7 +8,7 @@ CREATE TABLE Groups (
     peer_ids INTEGER NOT NULL,
     group_number VARCHAR(60) NOT NULL UNIQUE,
     route INTEGER NOT NULL,
-    kurs VARCHAR(60) NOT NULL,
+    course INTEGER NOT NULL,
     CONSTRAINT K1 PRIMARY KEY (peer_ids),
     CONSTRAINT C1 FOREIGN KEY (route) REFERENCES Routes (id_route)
 );
