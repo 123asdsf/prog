@@ -21,19 +21,18 @@ class UsersRepository():
                 await self._conn.rollback()
                 raise e
 
-    async def get_id(self, peer_id: int) -> Users | None:
+    async def get_ids_by_role(self, rule: int) -> list[int]:
         async with self._conn.cursor() as cursor:
             await cursor.execute("""
-                SELECT *
+                SELECT peer_id
                 FROM Users
-                WHERE peer_id = %s
-            """, (peer_id,))
-            result = await cursor.fetchone()
+                WHERE rule = %s
+            """, (rule,))
+            result = await cursor.fetchall()
             if result is None:
-                return None
-            return Users(
-                peer_id=result[0], name=result[1], surname=result[2], last_name=result[3], rule=result[4]
-            )
+                return []
+            peer_ids = [row[0] for row in result]
+            return peer_ids
 
 
     async def get_list(self, limit: int, offset: int = 0) -> list[Users]:

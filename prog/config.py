@@ -2,6 +2,7 @@ from vkbottle import API, Bot
 from vkbottle.bot import BotLabeler
 import os
 
+
 def environ_get(key: str, default=""):
     e = os.environ.get(key, default)
     if not e:

@@ -31,57 +31,56 @@ class GroupsRepository():
             if result is None:
                 return None
             return result
-
-    async def get_group(self, group_number: str) -> Groups | None:
+        
+    async def get_all_id(self) -> list[int] | None:
         async with self._conn.cursor() as cursor:
             await cursor.execute("""
-                SELECT *
+                SELECT peer_ids
+                FROM Groups
+            """)
+            result = await cursor.fetchall()
+            if result is None:
+                return None
+            peer_ids = [row[0] for row in result]
+            return peer_ids
+
+    async def get_peer_id_by_group(self, group_number: str) -> int:
+        async with self._conn.cursor() as cursor:
+            await cursor.execute("""
+                SELECT peer_ids
                 FROM Groups
                 WHERE group_number = %s
             """, (group_number, ))
-            result = await cursor.fetchone()
+            result = await cursor.fetchall()
             if result is None:
-                return None
-            return Groups(
-                peer_ids=result[0], 
-                group_number=result[1], 
-                route=result[2], 
-                course=result[3]
-            )
+                return -1
+            return result[0]
 
-    async def get_route(self, route: int) -> list[Groups] | None:
+    async def get_id_by_route(self, route: int) -> list[int] | None:
         async with self._conn.cursor() as cursor:
             await cursor.execute("""
-                SELECT *
+                SELECT peer_ids
                 FROM Groups
                 WHERE route = %s
             """, (route,))
-            result = await cursor.fetchone()
+            result = await cursor.fetchall()
             if result is None:
                 return None
-            return [Groups(
-                peer_ids=row[0], 
-                group_number=row[1], 
-                route=row[2], 
-                course=row[3]
-            ) for row in result]
+            peer_ids = [row[0] for row in result]
+            return peer_ids
 
-    async def get_kurs(self, course: int) -> list[Groups] | None:
+    async def get_id_by_course(self, course: list[int]) -> list[int] | None:
         async with self._conn.cursor() as cursor:
             await cursor.execute("""
-                SELECT *
+                SELECT peer_ids
                 FROM Groups
-                WHERE course = %s
-            """, (course,))
-            result = await cursor.fetchone()
+                WHERE course in (%s, %s, %s, %s)
+            """, (course[0], course[1], course[2], course[3]))
+            result = await cursor.fetchall()
             if result is None:
                 return None
-            return [Groups(
-                peer_ids=row[0], 
-                group_number=row[1], 
-                route=row[2], 
-                course=row[3]
-            ) for row in result]
+            peer_ids = [row[0] for row in result]
+            return peer_ids
 
     async def get_list(self, limit: int, offset: int = 0) -> list[Groups] | None:
         async with self._conn.cursor() as cursor:
