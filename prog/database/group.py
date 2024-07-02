@@ -51,7 +51,7 @@ class GroupsRepository():
                 FROM Groups
                 WHERE group_number = %s
             """, (group_number, ))
-            result = await cursor.fetchall()
+            result = await cursor.fetchone()
             if result is None:
                 return -1
             return result[0]
