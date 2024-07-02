@@ -27,7 +27,7 @@ class send(BaseStateGroup):
     WRITE = 0
     GRUPS = 1
     KURS = 2
-
+    ROUTE = 3
 #Кнопки ЕЩЁ, ОТПРАВИТЬ, ОТМЕНА
 
 # keyboard.add(Text("Отмена", {"cmd": "menu"}), color=KeyboardButtonColor.NEGATIVE)
@@ -59,7 +59,7 @@ async def private_handler(r: redis.asyncio.StrictRedis, route_repo: RoutesReposi
             select_group = await group_repo.get_id_by_course([item if item in select_group else -1 for item in [1, 2, 4, 3]])
         elif types == "route":
             print(f"\n\n\n\n\n\n\n\n\n\n\n ПО направлениям \n\n\n\n\n\n\n\n")
-            
+            select_group = await(group_repo.get_id_by_route(select_group))
         elif types == "group":
             print(f"\n\n\n\n\n\n\n\n\n\n\n ПО группам \n\n\n\n\n\n\n\n")
 
@@ -90,6 +90,28 @@ async def private_handler(r: redis.asyncio.StrictRedis, route_repo: RoutesReposi
                         photo = await photo_uploader.upload(file_source=response.content)
                         await bot.api.messages.send(random_id=0, peer_ids=select_group, attachment=str(photo))
 
+    async def select_but(peer_id: str, text: str):
+        select_kurs = await out_redis(peer_id)
+        state = await r.get(str(peer_id+'s'))
+        if state == "group":
+            ids = await group_repo.get_peer_id_by_group(text)
+            if ids in select_kurs:
+                await r.lrem(name=peer_id, count=0, value=str(ids))# type: ignore
+            else: await r.lpush(peer_id, ids) # type: ignore
+
+        elif state == "route":
+            print(f"\n\n\n\n\n\n\n\n\n\n\n {text}\n\n\n\n\n\n\n\n")
+            ids = await route_repo.get_id_by_name(text)
+            print(f"\n\n\n\n\n\n\n\n\n\n\n {ids}\n\n\n\n\n\n\n\n")
+            if ids in select_kurs:
+                print(f"\n\n\n\n\n\n\n\n\n\n\nДобавил\n\n\n\n\n\n\n\n")
+                await r.lrem(name=peer_id, count=0, value=str(ids)) # type: ignore
+            else: await r.lpush(peer_id, ids)# type: ignore
+
+        else:
+            if int(text[0]) in select_kurs:
+                await r.lrem(name=peer_id, count=0, value=text[0]) # type: ignore
+            else: await r.lpush(peer_id, text[0])# type: ignore
 
 
 
@@ -101,10 +123,8 @@ async def private_handler(r: redis.asyncio.StrictRedis, route_repo: RoutesReposi
         keyboard = Keyboard()
         count = 0
         select = await out_redis(id)
-
         groups = await group_repo.get_list(35)
         
-
         if not groups:
             return Keyboard()
         elif type(select) != list:
@@ -113,7 +133,7 @@ async def private_handler(r: redis.asyncio.StrictRedis, route_repo: RoutesReposi
             for group in groups:
                 if count % 5 == 0 and count != 0:
                     keyboard.row()
-
+                    
                 if group.peer_ids in select:
                     keyboard.add(Text(group.group_number), color=KeyboardButtonColor.PRIMARY)
                 else:
@@ -121,16 +141,39 @@ async def private_handler(r: redis.asyncio.StrictRedis, route_repo: RoutesReposi
                 count += 1
                 
             return keyboard
+        
+    #Задание направления в клаву
+    async def keyb_route(id: str):
+        keyboard = Keyboard()
+        count = 0
+        select = await out_redis(id)
+
+        routes = await route_repo.get_list(14)
+        
+        if not routes:
+            return Keyboard()
+        elif type(select) != list:
+            return Keyboard()
+        else:
+            for route in routes:
+                if count != 0:
+                    keyboard.row()
+                if route.id_route in select:
+                    keyboard.add(Text(route.name), color=KeyboardButtonColor.PRIMARY)
+                else:
+                    keyboard.add(Text(route.name))
+                count += 1
+                
+            return keyboard
 
     # Задаем курс в клавиатуру
     async def keyb_kurs(id: str):
-        
         courses = [1, 2, 3, 4]
-
         keyboard = Keyboard()
         select_kurs = await out_redis(id)
         if type(select_kurs) != list:
             return Keyboard()
+        
         for course in courses:
             if course in select_kurs:
                 keyboard.add(Text(f'{course} курс'), color=KeyboardButtonColor.PRIMARY)
@@ -168,6 +211,7 @@ async def private_handler(r: redis.asyncio.StrictRedis, route_repo: RoutesReposi
     @teacher_labeler.private_message(payload={"cmd": "input"})
     async def _(message: Message):
         await bot.state_dispenser.set(message.peer_id, send.WRITE)
+
         keyboard = Keyboard()
         keyboard.add(Text("Отмена", {"cmd": "menu"}), color=KeyboardButtonColor.NEGATIVE)
         # добавить что типо выбраны 
@@ -186,7 +230,7 @@ async def private_handler(r: redis.asyncio.StrictRedis, route_repo: RoutesReposi
     # Начала рассылки по группам
     @teacher_labeler.private_message(payload={"cmd": "group_sending"})
     async def _(message: Message):
-        await r.set(str(message.peer_id)+"s", "group")
+        await r.set(str(message.peer_id)+'s', "group")
         keyboard = await keyb_group(str(message.peer_id))
         keyboard.row()
         keyboard.add(Text("Отмена", {"cmd": "menu"}), color=KeyboardButtonColor.NEGATIVE)
@@ -196,14 +240,10 @@ async def private_handler(r: redis.asyncio.StrictRedis, route_repo: RoutesReposi
     # Выбор групп на рассылку
     @teacher_labeler.private_message(state=send.GRUPS)
     async def _(message: Message):
-        ids = await group_repo.get_peer_id_by_group(message.text)
-
-        await r.lpush(str(message.peer_id), ids) # type: ignore
+        await select_but(str(message.peer_id), message.text)
 
         keyboard = await keyb_group(str(message.peer_id))
         keyboard.row()
-        # если много групп то добавить кнопку ещё
-        # keyboard.add(Text("Ещё"), color=KeyboardButtonColor.PRIMARY)
         keyboard.add(Text("Ввести текст", {"cmd": "input"}), color=KeyboardButtonColor.POSITIVE)
         keyboard.add(Text("Отмена", {"cmd": "menu"}), color=KeyboardButtonColor.NEGATIVE)
         await message.answer("Выберите группы:", keyboard=keyboard.get_json())
@@ -211,39 +251,53 @@ async def private_handler(r: redis.asyncio.StrictRedis, route_repo: RoutesReposi
     # Начало рассылки по курсам
     @teacher_labeler.private_message(payload={"cmd": "kurs_sending"})
     async def _(message: Message):
-        await r.set(str(message.peer_id)+"s", "course")
+        await r.set(str(message.peer_id)+'s', "course")
+
         keyboard = await keyb_kurs(str(message.peer_id))
         keyboard.row()
         keyboard.add(Text("Отмена", {"cmd": "menu"}), color=KeyboardButtonColor.NEGATIVE)
-        # Рализовать бесконечный выбор и отмена выбора курсов.
         await message.answer("Выберите курсы:", keyboard=keyboard.get_json())
         await bot.state_dispenser.set(message.peer_id, send.KURS)
 
     # Выбор курсов для рассылки
     @teacher_labeler.private_message(state=send.KURS)
     async def _(message: Message):
-
-        await r.lpush(str(message.peer_id), message.text[0])# type: ignore
+        await select_but(str(message.peer_id), message.text[0])
 
         keyboard = await keyb_kurs(str(message.peer_id))
         keyboard.row()
-        # если много групп то добавить кнопку ещё
-        # keyboard.add(Text("Ещё"), color=KeyboardButtonColor.PRIMARY)
         keyboard.add(Text("Ввести текст", {"cmd": "input"}), color=KeyboardButtonColor.POSITIVE)
         keyboard.add(Text("Отмена", {"cmd": "menu"}), color=KeyboardButtonColor.NEGATIVE)
         await message.answer("Выберите курсы:", keyboard=keyboard.get_json())
 
-
+    # Начало рассылки по направлениям
     @teacher_labeler.private_message(payload={"cmd": "route_sending"})
     async def _(message: Message):
-        await r.set(str(message.peer_id)+"s", "route")
-        pass
+        await r.set(str(message.peer_id)+'s', "route")
+
+        keyboard = await keyb_route(str(message.peer_id))
+        keyboard.row()
+        keyboard.add(Text("Отмена", {"cmd": "menu"}), color=KeyboardButtonColor.NEGATIVE)
+        await message.answer("Выберите направление:", keyboard=keyboard.get_json())
+        await bot.state_dispenser.set(message.peer_id, send.ROUTE)
+
+    # Выбор направлений для рассылки
+    @teacher_labeler.private_message(state=send.ROUTE)
+    async def _(message: Message):
+        await select_but(str(message.peer_id), message.text)
+
+        keyboard = await keyb_route(str(message.peer_id))
+        keyboard.row()
+        keyboard.add(Text("Ввести текст", {"cmd": "input"}), color=KeyboardButtonColor.POSITIVE)
+        keyboard.add(Text("Отмена", {"cmd": "menu"}), color=KeyboardButtonColor.NEGATIVE)
+        await message.answer("Выберите направления:", keyboard=keyboard.get_json())
 
 
     @teacher_labeler.private_message(payload={"cmd": "all_sending"})
     async def _(message: Message):
-        await r.set(str(message.peer_id)+"s", "all")
+        await r.set(str(message.peer_id)+'s', "all")
         await bot.state_dispenser.set(message.peer_id, send.WRITE)
+
         keyboard = Keyboard()
         keyboard.add(Text("Отмена", {"cmd": "menu"}), color=KeyboardButtonColor.NEGATIVE)
         await message.answer("Введите сообщение для рассылки по всем группам:", keyboard=keyboard.get_json())

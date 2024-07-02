@@ -56,12 +56,12 @@ class GroupsRepository():
                 return -1
             return result[0]
 
-    async def get_id_by_route(self, route: int) -> list[int] | None:
+    async def get_id_by_route(self, route: list[int]) -> list[int] | None:
         async with self._conn.cursor() as cursor:
             await cursor.execute("""
                 SELECT peer_ids
                 FROM Groups
-                WHERE route = %s
+                WHERE route = ANY(%s)
             """, (route,))
             result = await cursor.fetchall()
             if result is None:

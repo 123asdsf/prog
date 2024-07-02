@@ -31,19 +31,17 @@ class RoutesRepository():
                 id_route=result[0], name=result[1]
             )
 
-    # async def get_name(self, name: str) -> Routes | None:
-    #     async with self._conn.cursor() as cursor:
-    #         await cursor.execute("""
-    #             SELECT *
-    #             FROM Routes
-    #             WHERE name = %s
-    #         """, (name))
-    #         result = await cursor.fetchone()
-    #         if result is None:
-    #             return None
-    #         return Routes(
-    #             id_route=result[0], name=result[1]
-    #         )
+    async def get_id_by_name(self, name: str) -> int:
+        async with self._conn.cursor() as cursor:
+            await cursor.execute("""
+                SELECT id_route
+                FROM Routes
+                WHERE name = %s
+            """, (name, ))
+            result = await cursor.fetchone()
+            if result is None:
+                return -1
+            return result[0]
 
 
     async def get_list(self, limit: int, offset: int = 0) -> list[Routes]:
