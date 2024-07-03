@@ -192,7 +192,7 @@ async def private_handler(r: redis.asyncio.StrictRedis, route_repo: RoutesReposi
     @teacher_labeler.private_message(payload={"cmd": "menu"})
     async def _(message: Message):
 
-        await r.delete(str(message.peer_id))
+        await r.delete(str(message.peer_id), str(message.peer_id)+'s')
 
         if await bot.state_dispenser.get(message.peer_id) is not None:
             await bot.state_dispenser.delete(message.peer_id)
