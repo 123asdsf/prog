@@ -1,5 +1,4 @@
 
-import redis.asyncio
 from prog.config import bot, DB_HOST, DB_NAME, DB_PASSWORD, DB_PORT, DB_USER
 from prog.message import labelers
 from prog.database.users import UsersRepository

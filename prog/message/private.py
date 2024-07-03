@@ -52,16 +52,13 @@ async def private_handler(r: redis.asyncio.StrictRedis, route_repo: RoutesReposi
 
         types = await r.get(id+"s")
         if  types == "all":
-            print(f"\n\n\n\n\n\n\n\n\n\n\n ВСЕОБЩАЯ \n\n\n\n\n\n\n\n")
             select_group = await group_repo.get_all_id()
         elif types == "course":
-            print(f"\n\n\n\n\n\n\n\n\n\n\n ПО КУРСАМ \n\n\n\n\n\n\n\n")
             select_group = await group_repo.get_id_by_course([item if item in select_group else -1 for item in [1, 2, 4, 3]])
         elif types == "route":
-            print(f"\n\n\n\n\n\n\n\n\n\n\n ПО направлениям \n\n\n\n\n\n\n\n")
             select_group = await(group_repo.get_id_by_route(select_group))
         elif types == "group":
-            print(f"\n\n\n\n\n\n\n\n\n\n\n ПО группам \n\n\n\n\n\n\n\n")
+            pass
 
         if type(select_group) != list:
             return
@@ -100,11 +97,8 @@ async def private_handler(r: redis.asyncio.StrictRedis, route_repo: RoutesReposi
             else: await r.lpush(peer_id, ids) # type: ignore
 
         elif state == "route":
-            print(f"\n\n\n\n\n\n\n\n\n\n\n {text}\n\n\n\n\n\n\n\n")
             ids = await route_repo.get_id_by_name(text)
-            print(f"\n\n\n\n\n\n\n\n\n\n\n {ids}\n\n\n\n\n\n\n\n")
             if ids in select_kurs:
-                print(f"\n\n\n\n\n\n\n\n\n\n\nДобавил\n\n\n\n\n\n\n\n")
                 await r.lrem(name=peer_id, count=0, value=str(ids)) # type: ignore
             else: await r.lpush(peer_id, ids)# type: ignore
 

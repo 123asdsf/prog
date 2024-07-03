@@ -1,6 +1,6 @@
 CREATE TABLE Routes (
     id_route SERIAL NOT NULL,
-    name VARCHAR(60) NOT NULL UNIQUE,
+    name VARCHAR(60) NOT NULL,
     CONSTRAINT K2 PRIMARY KEY (id_route)
 );
 
