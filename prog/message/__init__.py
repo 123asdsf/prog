@@ -2,6 +2,6 @@
 from . import admin, group, private
 # Если использовать глобальный лейблер, то все хендлеры будут зарегистрированы в том же порядке, в котором они были импортированы
 
-labelers = [admin.admin_labeler, group.labeler]
+labelers = [admin.admin_labeler, group.labeler, private.teacher_labeler]
 
 __all__ = ["labelers"]

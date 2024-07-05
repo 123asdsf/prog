@@ -9,18 +9,19 @@ from prog.database.routes import RoutesRepository
 from prog.database.group import GroupsRepository
 from prog.database.rules import RulesRepository
 from re import split
-from vkbottle.dispatch.rules.base import FromPeerRule
+
+teacher_ids: list[int] = []
+
+def up_teacher_ids(ids: list[int]):
+    global teacher_ids 
+    teacher_ids = ids
+        
 
 
+teacher_labeler = BotLabeler()
+teacher_labeler.auto_rules = [rules.FromPeerRule(teacher_ids)]
 doc_uploader = DocMessagesUploader(bot.api)
 photo_uploader = PhotoMessageUploader(bot.api)
-
-async def up_teacher_ids(ids: list[int], r: redis.asyncio.StrictRedis, route_repo: RoutesRepository,
-                            group_repo: GroupsRepository):
-    await private_handler(r, route_repo, group_repo, ids)
-
-    # teacher_labeler.auto_rules = [rules.FromPeerRule(teacher_ids)]
-    # bot.labeler.load(teacher_labeler)
 
 class send(BaseStateGroup):
     WRITE = 0
@@ -33,9 +34,9 @@ class send(BaseStateGroup):
 # keyboard.add(Text("Ввести текст", {"cmd": "input"}), color=KeyboardButtonColor.POSITIVE)
 # keyboard.add(Text("Ещё"), color=KeyboardButtonColor.PRIMARY)
 async def private_handler(r: redis.asyncio.StrictRedis, route_repo: RoutesRepository,
-                            group_repo: GroupsRepository, teacher_ids: list[int]):
+                            group_repo: GroupsRepository):
     
-    print(f"\n\n\n\n\n\n\n\n{teacher_ids}\n\n\n\n\n\n\n")
+
     # возврат адекватного массива из редиса
     async def out_redis(id: str) -> list[int]:
 
@@ -187,8 +188,8 @@ async def private_handler(r: redis.asyncio.StrictRedis, route_repo: RoutesReposi
     
 
     #Начальный этап рассылки
-    @bot.on.private_message(FromPeerRule(teacher_ids), text = "Начать рассылку")
-    @bot.on.private_message(FromPeerRule(teacher_ids), payload={"cmd": "menu"})
+    @teacher_labeler.private_message(text = "Начать рассылку")
+    @teacher_labeler.private_message(payload={"cmd": "menu"})
     async def _(message: Message):
 
         await r.delete(str(message.peer_id), str(message.peer_id)+'s')
@@ -201,7 +202,7 @@ async def private_handler(r: redis.asyncio.StrictRedis, route_repo: RoutesReposi
 
 
     # Ввод текста
-    @bot.on.private_message(FromPeerRule(teacher_ids), payload={"cmd": "input"})
+    @teacher_labeler.private_message(payload={"cmd": "input"})
     async def _(message: Message):
         await bot.state_dispenser.set(message.peer_id, send.WRITE)
 
@@ -211,7 +212,7 @@ async def private_handler(r: redis.asyncio.StrictRedis, route_repo: RoutesReposi
         await message.answer("Введите сообщение для рассылки:", keyboard=keyboard.get_json())
 
     # Подтверждение рассылки
-    @bot.on.private_message(FromPeerRule(teacher_ids), state=send.WRITE)
+    @teacher_labeler.private_message(state=send.WRITE)
     async def _(message: Message):
         
         keyboard = Keyboard()
@@ -221,7 +222,7 @@ async def private_handler(r: redis.asyncio.StrictRedis, route_repo: RoutesReposi
         await message.answer("Вы действительно хотите отправить данное сообщение?", keyboard=keyboard.get_json())
         
     # Начала рассылки по группам
-    @bot.on.private_message(FromPeerRule(teacher_ids), payload={"cmd": "group_sending"})
+    @teacher_labeler.private_message(payload={"cmd": "group_sending"})
     async def _(message: Message):
         await r.set(str(message.peer_id)+'s', "group")
         keyboard = await keyb_group(str(message.peer_id))
@@ -231,7 +232,7 @@ async def private_handler(r: redis.asyncio.StrictRedis, route_repo: RoutesReposi
         await bot.state_dispenser.set(message.peer_id, send.GRUPS)
 
     # Выбор групп на рассылку
-    @bot.on.private_message(FromPeerRule(teacher_ids), state=send.GRUPS)
+    @teacher_labeler.private_message(state=send.GRUPS)
     async def _(message: Message):
         await select_but(str(message.peer_id), message.text)
 
@@ -242,7 +243,7 @@ async def private_handler(r: redis.asyncio.StrictRedis, route_repo: RoutesReposi
         await message.answer("Выберите группы:", keyboard=keyboard.get_json())
 
     # Начало рассылки по курсам
-    @bot.on.private_message(FromPeerRule(teacher_ids), payload={"cmd": "kurs_sending"})
+    @teacher_labeler.private_message(payload={"cmd": "kurs_sending"})
     async def _(message: Message):
         await r.set(str(message.peer_id)+'s', "course")
 
@@ -253,7 +254,7 @@ async def private_handler(r: redis.asyncio.StrictRedis, route_repo: RoutesReposi
         await bot.state_dispenser.set(message.peer_id, send.KURS)
 
     # Выбор курсов для рассылки
-    @bot.on.private_message(FromPeerRule(teacher_ids), state=send.KURS)
+    @teacher_labeler.private_message(state=send.KURS)
     async def _(message: Message):
         await select_but(str(message.peer_id), message.text[0])
 
@@ -264,7 +265,7 @@ async def private_handler(r: redis.asyncio.StrictRedis, route_repo: RoutesReposi
         await message.answer("Выберите курсы:", keyboard=keyboard.get_json())
 
     # Начало рассылки по направлениям
-    @bot.on.private_message(FromPeerRule(teacher_ids), payload={"cmd": "route_sending"})
+    @teacher_labeler.private_message(payload={"cmd": "route_sending"})
     async def _(message: Message):
         await r.set(str(message.peer_id)+'s', "route")
 
@@ -275,7 +276,7 @@ async def private_handler(r: redis.asyncio.StrictRedis, route_repo: RoutesReposi
         await bot.state_dispenser.set(message.peer_id, send.ROUTE)
 
     # Выбор направлений для рассылки
-    @bot.on.private_message(FromPeerRule(teacher_ids), state=send.ROUTE)
+    @teacher_labeler.private_message(state=send.ROUTE)
     async def _(message: Message):
         await select_but(str(message.peer_id), message.text)
 
@@ -286,7 +287,7 @@ async def private_handler(r: redis.asyncio.StrictRedis, route_repo: RoutesReposi
         await message.answer("Выберите направления:", keyboard=keyboard.get_json())
 
 
-    @bot.on.private_message(FromPeerRule(teacher_ids), payload={"cmd": "all_sending"})
+    @teacher_labeler.private_message(payload={"cmd": "all_sending"})
     async def _(message: Message):
         await r.set(str(message.peer_id)+'s', "all")
         await bot.state_dispenser.set(message.peer_id, send.WRITE)
@@ -298,7 +299,7 @@ async def private_handler(r: redis.asyncio.StrictRedis, route_repo: RoutesReposi
 
     
 
-    @bot.on.private_message(FromPeerRule(teacher_ids), payload={"cmd": "sending"})
+    @teacher_labeler.private_message(payload={"cmd": "sending"})
     async def _(message: Message):
         
         x = await bot.api.messages.get_history(count=1, peer_id=message.peer_id, start_message_id=message.id-2)

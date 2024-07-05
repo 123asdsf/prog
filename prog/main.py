@@ -9,7 +9,6 @@ from prog.message.admin import admins_handler
 from prog.message.group import group_handler
 from prog.message.private import private_handler
 from prog.message.private import up_teacher_ids
-from prog.MyRule import teacher_rule
 import psycopg
 import redis.asyncio
 import asyncio
@@ -28,14 +27,12 @@ async def app():
     group_repo = GroupsRepository(conn)
     rule_repo = RulesRepository(conn)
 
-
-
-    await private_handler(r, route_repo, group_repo, await user_repo.get_ids_by_role(1))
-
-    await admins_handler(route_repo, user_repo, group_repo, r)
+    await admins_handler(route_repo, user_repo)
     await group_handler(group_repo)
+    await private_handler(r, route_repo, group_repo)
 
-    bot.labeler.custom_rules["teacher"] = teacher_rule
+    up_teacher_ids(await user_repo.get_ids_by_role(1))
+
     for labeler in labelers:
         bot.labeler.load(labeler)
 

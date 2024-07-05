@@ -3,8 +3,7 @@ from vkbottle import Keyboard, KeyboardButtonColor, Text, BaseStateGroup
 from prog.config import bot
 from prog.database.routes import RoutesRepository
 from prog.database.users import UsersRepository
-from prog.database.group import GroupsRepository
-from prog.message.private import private_handler
+from prog.message.private import up_teacher_ids
 
 admin_labeler = BotLabeler()
 admin_labeler.auto_rules = [rules.FromPeerRule(239072798)]
@@ -15,8 +14,7 @@ class Asend(BaseStateGroup):
 
 
 
-async def admins_handler(route_repo: RoutesRepository, user_repo: UsersRepository,
-                         group_repo: GroupsRepository, r):
+async def admins_handler(route_repo: RoutesRepository, user_repo: UsersRepository):
     
 
     def start_keyboard():
@@ -67,6 +65,6 @@ async def admins_handler(route_repo: RoutesRepository, user_repo: UsersRepositor
                 await user_repo.create(peer_id=peer_id, name=name, surname=surname, last_name=last_name, rule=1)
                 await message.answer("Преподователь добавлен.")
 
-                await private_handler(r, route_repo, group_repo, await user_repo.get_ids_by_role(1))
+                up_teacher_ids(await user_repo.get_ids_by_role(1))
         else:
             await message.answer("Неверный формат ввода.")
