@@ -65,6 +65,6 @@ async def admins_handler(route_repo: RoutesRepository, user_repo: UsersRepositor
                 await user_repo.create(peer_id=peer_id, name=name, surname=surname, last_name=last_name, rule=1)
                 await message.answer("Преподователь добавлен.")
 
-                up_teacher_ids(await user_repo.get_ids_by_role(1))
+                await up_teacher_ids(await user_repo.get_ids_by_role(1))
         else:
             await message.answer("Неверный формат ввода.")

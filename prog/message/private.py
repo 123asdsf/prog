@@ -10,18 +10,19 @@ from prog.database.group import GroupsRepository
 from prog.database.rules import RulesRepository
 from re import split
 
-teacher_ids: list[int] = [239072798]
-
-def up_teacher_ids(ids: list[int]):
-    global teacher_ids 
-    teacher_ids = ids
-        
+teacher_ids: list[int] = []
 
 
 teacher_labeler = BotLabeler()
 teacher_labeler.auto_rules = [rules.FromPeerRule(teacher_ids)]
 doc_uploader = DocMessagesUploader(bot.api)
 photo_uploader = PhotoMessageUploader(bot.api)
+
+async def up_teacher_ids(ids: list[int]):
+    global teacher_ids 
+    teacher_ids = ids
+    teacher_labeler.auto_rules = [rules.FromPeerRule(teacher_ids)]
+    bot.labeler.load(teacher_labeler)
 
 class send(BaseStateGroup):
     WRITE = 0
@@ -36,7 +37,7 @@ class send(BaseStateGroup):
 async def private_handler(r: redis.asyncio.StrictRedis, route_repo: RoutesRepository,
                             group_repo: GroupsRepository):
     
-
+    print(f"\n\n\n\n\n\n\n\n{teacher_ids}\n\n\n\n\n\n\n")
     # возврат адекватного массива из редиса
     async def out_redis(id: str) -> list[int]:
 
